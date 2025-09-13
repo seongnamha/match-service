@@ -20,37 +20,22 @@ interface IResult {
 }
 
 const App = () => {
-    const [screen, setScreen] = useState('onboarding'); // onboarding, gender, age, quiz, loading, results, animalResult, error
+    const [screen, setScreen] = useState('onboarding'); // onboarding, gender, age, quiz, loading, results, error
     const [gender, setGender] = useState('');
     const [age, setAge] = useState('');
     const [questions, setQuestions] = useState<IQuestion[]>([]);
     const [answers, setAnswers] = useState<number[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [result, setResult] = useState<IResult | null>(null);
-    const [animalImageUrl, setAnimalImageUrl] = useState('');
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState('');
 
-    // State for result screen flow
-    const [showAnimalPrompt, setShowAnimalPrompt] = useState(false);
-    const [promptAnswered, setPromptAnswered] = useState(false);
-
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-    // Timer effect for animal prompt on results screen
-    useEffect(() => {
-        if (screen === 'results' && !promptAnswered) {
-            const timer = setTimeout(() => {
-                setShowAnimalPrompt(true);
-            }, 10000); // 10 seconds
-            return () => clearTimeout(timer);
-        }
-    }, [screen, promptAnswered]);
-
 
     const handleStart = () => setScreen('gender');
 
     const handleStartQuiz = async () => {
+        setError('');
         setLoadingMessage('당신을 위한 질문을 만들고 있어요...');
         setScreen('loading');
 
@@ -146,55 +131,6 @@ const App = () => {
         }
     };
     
-    const handleAnimalChoice = async (choice: 'yes' | 'no') => {
-        setShowAnimalPrompt(false);
-        setPromptAnswered(true);
-
-        if (choice === 'yes' && result) {
-            const adMessages = [
-                "당신의 영혼 동물을 화폭에 담는 중... 광고주가 물감을 협찬했습니다. (아마도) 🎨",
-                "AI 화가가 초상화를 그리고 있어요. 이 광고가 끝나면 멋진 작품이 탄생할 거예요! 🖼️",
-                "신비한 동물사전에서 당신과 닮은 동물을 찾는 중... (광고주의 도움으로 더 빨리 찾고 있습니다.)"
-            ];
-            setLoadingMessage(adMessages[Math.floor(Math.random() * adMessages.length)]);
-            setScreen('loading');
-            try {
-                let style = '';
-                const ageNum = parseInt(age);
-                if (gender === 'male') {
-                    style = ageNum >= 40 
-                        ? 'in a dynamic and expressive Korean webtoon art style' 
-                        : 'in a bold and action-packed American comic book art style';
-                } else { // female
-                    style = ageNum >= 40 
-                        ? 'in a beautiful and gentle Studio Ghibli animation style' 
-                        : 'in a cute and expressive Pixar/Dreamworks 3D animation style';
-                }
-                
-                const imagePrompt = `A full body portrait of a charismatic and funny ${result.animal} character, with a friendly and expressive face. ${style}.`;
-
-                const imageResponse = await ai.models.generateImages({
-                    model: 'imagen-4.0-generate-001',
-                    prompt: imagePrompt,
-                    config: {
-                        numberOfImages: 1,
-                        outputMimeType: 'image/png',
-                        aspectRatio: '1:1',
-                    },
-                });
-
-                const base64ImageBytes: string = imageResponse.generatedImages[0].image.imageBytes;
-                setAnimalImageUrl(`data:image/png;base64,${base64ImageBytes}`);
-                setScreen('animalResult');
-
-            } catch (err) {
-                setError('동물 이미지를 생성하는 데 실패했습니다. 결과 페이지로 돌아갑니다.');
-                setScreen('results'); // Go back to results page on failure
-                console.error(err);
-            }
-        }
-    };
-
     const handleReset = () => {
         setScreen('onboarding');
         setGender('');
@@ -205,9 +141,6 @@ const App = () => {
         setResult(null);
         setError('');
         setLoadingMessage('');
-        setAnimalImageUrl('');
-        setShowAnimalPrompt(false);
-        setPromptAnswered(false);
     };
 
     const ageRanges = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
@@ -286,59 +219,31 @@ const App = () => {
                 if (!result) return null;
                 return (
                     <div className="container">
-                         <h1>분석 결과</h1>
+                         <h1>{result.title} {result.emoji}</h1>
+                         <div className="result-score-container">
+                            <p>이성에게 사랑받는 정도</p>
+                            <p className="result-score">{result.score}점</p>
+                        </div>
+                        <p style={{marginBottom: '30px'}}>당신과 닮은 동물은 바로... <strong>{result.animal}!</strong></p>
+
                          <div className="result-card">
                             <h3>⭐ 당신의 장점</h3>
                             <p>{result.strengths}</p>
                          </div>
                          <div className="result-card">
-                            <h3>🤔 당신의 단점</h3>
+                            <h3>🤔 당신의 단점 ({result.mainWeakness})</h3>
                             <p>{result.weaknesses}</p>
                          </div>
                          <div className="result-card">
                             <h3>✍️ 총평</h3>
                             <p>{result.summary}</p>
                          </div>
-                        
-                         {showAnimalPrompt && (
-                             <div className="animal-prompt">
-                                 <p>이성이 당신에게 느끼는 호감도와 동물상을 확인하시겠습니까?</p>
-                                 <div className="button-group">
-                                     <button className="pink" onClick={() => handleAnimalChoice('yes')}>Yes</button>
-                                     <button onClick={() => handleAnimalChoice('no')}>No</button>
-                                 </div>
-                             </div>
-                         )}
 
-                         {promptAnswered && !showAnimalPrompt && (
-                            <div className="button-group" style={{marginTop: '30px'}}>
-                                <button className="pink" onClick={handleReset}>다시하기</button>
-                            </div>
-                         )}
-                    </div>
-                );
-            case 'animalResult':
-                 if (!result) return null;
-                 return (
-                    <div className="container">
-                         <p className="result-emoji">{result.emoji}</p>
-                         <h1>{result.title}</h1>
-                         <p>당신과 닮은 동물은 바로... <strong>{result.animal}!</strong></p>
-
-                         <div className="animal-image-container">
-                            <img src={animalImageUrl} alt={`An artistic depiction of a ${result.animal}`} className="animal-image"/>
-                         </div>
-                         
-                         <div className="result-score-container">
-                            <p>이성에게 사랑받는 정도</p>
-                            <p className="result-score">{result.score}점</p>
-                        </div>
-
-                         <div className="button-group">
+                        <div className="button-group" style={{marginTop: '30px'}}>
                             <button className="pink" onClick={handleReset}>다시하기</button>
                         </div>
                     </div>
-                 );
+                );
              case 'error':
                 return (
                     <div className="container">

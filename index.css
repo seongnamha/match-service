@@ -227,6 +227,7 @@ button.selected {
     font-size: 3rem;
     color: var(--neon-cyan);
     text-shadow: 0 0 10px var(--shadow-color-cyan);
+    margin-bottom: 0;
 }
 
 .result-card {
@@ -250,30 +251,20 @@ button.selected {
     margin-bottom: 0;
 }
 
-.result-card:nth-child(1) { animation-delay: 0.2s; }
-.result-card:nth-child(2) { animation-delay: 0.4s; }
-.result-card:nth-child(3) { animation-delay: 0.6s; }
+.result-card:nth-child(2) { animation-delay: 0.2s; }
+.result-card:nth-child(3) { animation-delay: 0.4s; }
+.result-card:nth-child(4) { animation-delay: 0.6s; }
 
-.animal-prompt {
-    margin-top: 30px;
-    padding: 20px;
-    border: 1px dashed var(--neon-cyan);
-    border-radius: 10px;
-    opacity: 0;
-    animation: fadeIn 1s forwards;
-    animation-delay: 0.8s; /* Show after result cards have animated in */
-}
-
-.animal-image-container {
-    margin: 20px 0;
-    animation: fadeIn 1s;
-}
-
-.animal-image {
-    max-width: 100%;
-    border-radius: 15px;
-    border: 3px solid var(--neon-pink);
-    box-shadow: 0 0 20px var(--shadow-color-pink);
+.error-box {
+    background-color: rgba(255, 0, 128, 0.2);
+    border: 1px solid var(--neon-pink);
+    color: var(--primary-text-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 5px var(--shadow-color-pink);
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 @keyframes fadeIn {
