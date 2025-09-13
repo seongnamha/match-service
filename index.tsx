@@ -171,12 +171,7 @@ const App = () => {
                         : 'in a cute and expressive Pixar/Dreamworks 3D animation style';
                 }
                 
-                let imagePrompt = '';
-                if (gender === 'male') {
-                    imagePrompt = `A portrait of a charismatic ${result.animal}, comically and exaggeratedly acting out its main flaw: "${result.mainWeakness}". The scene should be hilarious. For example, if the flaw is 'stinginess', show the animal counting coins obsessively with a funny face. Full body shot. The character should have a funny and slightly pathetic expression. ${style}.`;
-                } else {
-                    imagePrompt = `A portrait of a charismatic ${result.animal}, full body shot. The character should have a friendly and funny expression. ${style}.`;
-                }
+                const imagePrompt = `A full body portrait of a charismatic and funny ${result.animal} character, with a friendly and expressive face. ${style}.`;
 
                 const imageResponse = await ai.models.generateImages({
                     model: 'imagen-4.0-generate-001',
